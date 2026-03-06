@@ -1,9 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
 from sklearn.ensemble import BaggingRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+from sklearn.model_selection import KFold, cross_validate 
+
+
 from .load_data import load_data
 from .fig import save_fig
 
@@ -11,6 +15,14 @@ def bagging_regression(X_train, X_test, Y_train, Y_test):
    
     bag_model = BaggingRegressor(DecisionTreeRegressor(), n_estimators=500,
                             max_samples=100, n_jobs=-1, random_state=42)
+    
+    kf = KFold(n_splits=5, shuffle=True, random_state=42)
+    cv_results = cross_validate(bag_model, X_train, Y_train, cv=kf, 
+                                scoring=('neg_mean_squared_error', 'r2'), n_jobs=-1)
+    
+    print("\nResultados K-Fold (K=5)")
+    print(f"  CV MSE Promedio: {-cv_results['test_neg_mean_squared_error'].mean():,.2f}")
+    print(f"  CV R² Promedio:  {cv_results['test_r2'].mean():.4f}\n")
     
     bag_model.fit(X_train, Y_train)
     
