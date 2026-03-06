@@ -34,7 +34,7 @@ def run_nn_keras(X_train=None, X_test=None, Y_train=None, Y_test=None, epochs=30
     model.compile(
         optimizer=keras.optimizers.Adam(learning_rate=1e-3),
         loss="mse",
-        metrics=[keras.metrics.RootMeanSquaredError()]
+        metrics=[keras.metrics.MeanSquaredError()]
     )
 
     callbacks = [
