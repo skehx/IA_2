@@ -14,7 +14,7 @@ from .fig import save_fig
 def build_model(architecture, input_dim):
 
     if architecture == 1:
-        # Arquitectura 1 (Rectangular)
+        # Arquitectura 1 (Rectangular         )
         model = keras.Sequential([
             keras.layers.Input(shape=(input_dim,)),
             keras.layers.Dense(50, activation="relu"),
