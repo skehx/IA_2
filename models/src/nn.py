@@ -14,7 +14,7 @@ from .fig import save_fig
 def build_model(architecture, input_dim):
 
     if architecture == 1:
-        # Arquitectura 1 (Rectangular         )
+        # Arquitectura 1 (Rectangular)
         model = keras.Sequential([
             keras.layers.Input(shape=(input_dim,)),
             keras.layers.Dense(50, activation="relu"),
@@ -55,7 +55,7 @@ def run_nn_keras(X_train=None, X_test=None, Y_train=None, Y_test=None, epochs=30
     if X_train is None:
         X_train, X_test, Y_train, Y_test = load_data()
 
-    # Escalar datos
+    
     scaler_x = StandardScaler()
     X_train_s = scaler_x.fit_transform(X_train)
     X_test_s = scaler_x.transform(X_test)
@@ -182,8 +182,8 @@ def run_nn_keras(X_train=None, X_test=None, Y_train=None, Y_test=None, epochs=30
         plt.title(f"Reales vs Predicciones (Arch {arch})")
 
         plt.tight_layout()
-        save_fig(f"nn_arch_{arch}.png")
-        plt.show()
+        save_fig(f"nn_arch_{arch}")
+        
 
     # Comparación final
     print("\n===== COMPARACIÓN FINAL =====")
