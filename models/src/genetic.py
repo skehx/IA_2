@@ -14,16 +14,48 @@ TOURNAMENT_SIZE = 3
 ELITE_SIZE = 1 
 
 # FUNCIONES PARA GRAFICAR
-def plot_genetic_history(history, fold_name="final"):
-    plt.figure(figsize=(10, 6))
-    plt.plot(range(1, len(history) + 1), history, marker='o', linestyle='-', color='b', markersize=4)
-    plt.title(f'Evolución del MSE por Generación ({fold_name})')
-    plt.xlabel('Generaciones')
-    plt.ylabel('Mean Squared Error (MSE)')
-    plt.grid(True)
+def plot_genetic_history(history, y_true=None, y_pred=None, fold_name="final"):
+    """Grafica la evolucion del MSE y, opcionalmente, prediccion vs valor real."""
+    has_predictions = y_true is not None and y_pred is not None
+
+    if has_predictions:
+        fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+    else:
+        fig, axes = plt.subplots(1, 1, figsize=(10, 6))
+        axes = [axes]
+
+   
+    axes[0].plot(range(1, len(history) + 1), history, marker='o', linestyle='-', color='b', markersize=4)
+    axes[0].set_title(f'Evolucion del MSE por Generacion ({fold_name})')
+    axes[0].set_xlabel('Generaciones')
+    axes[0].set_ylabel('Mean Squared Error (MSE)')
+    axes[0].grid(True)
+
     
-    # Guarda la gráfica en outputs/images/ensembles/ usando tu función
-    save_fig(f"evolucion_ag_{fold_name}") 
+    if has_predictions:
+        final_mse = mean_squared_error(y_true, y_pred)
+        axes[1].scatter(y_true, y_pred, alpha=0.6, color='tab:orange', edgecolors='k', linewidths=0.3)
+
+        min_val = min(np.min(y_true), np.min(y_pred))
+        max_val = max(np.max(y_true), np.max(y_pred))
+        axes[1].plot([min_val, max_val], [min_val, max_val], 'r--', linewidth=1.5, label='Prediccion ideal')
+
+        axes[1].set_title('Prediccion vs Valor real (Testing)')
+        axes[1].set_xlabel('Valor real')
+        axes[1].set_ylabel('Prediccion')
+        axes[1].grid(True)
+        axes[1].legend()
+        axes[1].text(
+            0.05,
+            0.95,
+            f'MSE final: {final_mse:,.2f}',
+            transform=axes[1].transAxes,
+            verticalalignment='top',
+            bbox=dict(boxstyle='round', facecolor='white', alpha=0.8)
+        )
+
+    fig.suptitle(f'Resumen del algoritmo genetico ({fold_name})', fontsize=13)
+    save_fig(f"evolucion_ag_{fold_name}")
     
 
 # FUNCIONES DEL ALGORITMO GENÉTICO 
@@ -118,13 +150,13 @@ def train_with_kfold():
     K_SPLITS = 5
     kf = KFold(n_splits=K_SPLITS, shuffle=True, random_state=42)
     
-    print(f"Iniciando Validación Cruzada K-Fold ({K_SPLITS} folds)...")
+    print(f"Iniciando Validación Cruzada K-Fold ({K_SPLITS} folds)")
     print(f"Columnas: {num_columns} | Población: {POPULATION_SIZE} | Genes: {N_GENES}\n")
     
     fold_metrics = {'mse': [], 'mae': [], 'r2': []}
     
     for fold, (train_index, val_index) in enumerate(kf.split(X_vals)):
-        print(f"Entrenando Fold {fold + 1}/{K_SPLITS} ---")
+        print(f"Entrenando Fold {fold + 1}/{K_SPLITS}")
         
         X_fold_train, X_fold_val = X_vals[train_index], X_vals[val_index]
         Y_fold_train, Y_fold_val = Y_vals[train_index], Y_vals[val_index]
@@ -136,7 +168,7 @@ def train_with_kfold():
         best_weights = best_individual[:-1]
         best_bias = best_individual[-1]
         
-        # Predecir sobre el subconjunto de validación (el fold que no vió)
+        # Predecir sobre el subconjunto de validación 
         Y_fold_pred = np.dot(X_fold_val, best_weights) + best_bias
         
         # Calcular Métricas
@@ -154,9 +186,9 @@ def train_with_kfold():
     print("=" * 50)
     print("RESULTADOS PROMEDIO DE LA VALIDACIÓN CRUZADA (TRAIN/VAL)")
     print("=" * 50)
-    print(f"MSE Promedio : {np.mean(fold_metrics['mse']):,.2f} (+/- {np.std(fold_metrics['mse']):,.2f})")
-    print(f"MAE Promedio : {np.mean(fold_metrics['mae']):,.2f} (+/- {np.std(fold_metrics['mae']):,.2f})")
-    print(f"R2 Promedio : {np.mean(fold_metrics['r2']):.4f} (+/- {np.std(fold_metrics['r2']):.4f})")
+    print(f"MSE Promedio : {np.mean(fold_metrics['mse']):,.2f} ({np.std(fold_metrics['mse']):,.2f})")
+    print(f"MAE Promedio : {np.mean(fold_metrics['mae']):,.2f} ({np.std(fold_metrics['mae']):,.2f})")
+    print(f"R2 Promedio : {np.mean(fold_metrics['r2']):.4f} ({np.std(fold_metrics['r2']):.4f})")
     print("=" * 50)
     
     print("\n" + "=" * 50)
@@ -167,13 +199,10 @@ def train_with_kfold():
     print("Entrenando AG final con todo el subset de Training")
     best_final_ind, final_history = run_genetic_algorithm(X_vals, Y_vals, POPULATION_SIZE, N_GENES)
     
-    # Generar y guardar la gráfica del entrenamiento final
-    plot_genetic_history(final_history, fold_name="modelo_final")
-    
     best_final_weights = best_final_ind[:-1]
     best_final_bias = best_final_ind[-1]
     
-    # Predecimos usando los datos puros de Testing
+    # Predecimos usando los datos de Testing
     X_test_vals = X_test.values
     Y_test_vals = Y_test.values
     Y_test_pred = np.dot(X_test_vals, best_final_weights) + best_final_bias
@@ -182,6 +211,9 @@ def train_with_kfold():
     test_mse = mean_squared_error(Y_test_vals, Y_test_pred)
     test_mae = mean_absolute_error(Y_test_vals, Y_test_pred)
     test_r2 = r2_score(Y_test_vals, Y_test_pred)
+
+    # Generar y guardar la grafica del entrenamiento final + predicciones
+    plot_genetic_history(final_history, Y_test_vals, Y_test_pred, fold_name="modelo_final")
     
     print("Métricas en Testing:")
     print(f"Test MSE: {test_mse:,.2f}")

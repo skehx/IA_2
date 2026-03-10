@@ -1,15 +1,14 @@
 import pandas as pd
 
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import  StandardScaler
 
-def load_data(path = 'data/insurance.csv'):
+def load_data(path = 'data/insurance_eda.csv'):
     
-   df = pd.read_csv(path)
-   encoder = LabelEncoder()
+   df = pd.read_csv(path)   
    scaler = StandardScaler()
    
-   df['smoker'] = encoder.fit_transform(df['smoker'])
+ 
    X_raw = df[['age', 'bmi', 'children', 'smoker']]
    Y = df['charges']
    

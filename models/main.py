@@ -6,7 +6,6 @@ from src.genetic import train_with_kfold
 
 if __name__ == "__main__": 
     # 1. Cargar Datos
-    print("Cargando y preprocesando base de datos...")
     X_train, X_test, Y_train, Y_test = load_data()
 
     # 2. Ejecutar y capturar Bagging
@@ -71,7 +70,7 @@ if __name__ == "__main__":
     print("\n" + "="*60)
     print(" CONCLUSIÓN: EL MEJOR MODELO ES:")
     print("="*60)
-    print(f"El modelo ganador es: >> {ganador['Modelo'].upper()} <<")
+    print(f"El modelo ganador es: {ganador['Modelo'].upper()}")
     print(f"Logró explicar el {ganador['Test R²']*100:.2f}% de los datos (R² = {ganador['Test R²']:.4f})")
     print(f"Y tuvo el menor margen de error promedio de: ${ganador['Test MAE']:,.2f} USD")
     print("="*60)
