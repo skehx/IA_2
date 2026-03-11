@@ -1,0 +1,10 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ia2-models
+    working_dir: /app/models
+    command: python main.py
+    volumes:
+      - ./models/outputs:/app/models/outputs

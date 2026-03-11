@@ -50,6 +50,11 @@ def build_model(architecture, input_dim):
     return model
 
 
+def predict_tensor(model, x_data):
+    x_tensor = tf.convert_to_tensor(x_data, dtype=tf.float32)
+    return model(x_tensor, training=False).numpy()
+
+
 def run_nn_keras(X_train=None, X_test=None, Y_train=None, Y_test=None, epochs=30):
 
     if X_train is None:
@@ -105,7 +110,7 @@ def run_nn_keras(X_train=None, X_test=None, Y_train=None, Y_test=None, epochs=30
                 callbacks=callbacks
             )
 
-            y_pred_val_s = model.predict(X_val_fold)
+            y_pred_val_s = predict_tensor(model, X_val_fold)
             y_pred_val = scaler_y.inverse_transform(y_pred_val_s).ravel()
 
             y_val_real = scaler_y.inverse_transform(Y_val_fold).ravel()
@@ -132,8 +137,8 @@ def run_nn_keras(X_train=None, X_test=None, Y_train=None, Y_test=None, epochs=30
         )
 
         # Predicciones
-        y_pred_train_s = model.predict(X_train_s)
-        y_pred_test_s = model.predict(X_test_s)
+        y_pred_train_s = predict_tensor(model, X_train_s)
+        y_pred_test_s = predict_tensor(model, X_test_s)
 
         y_pred_train = scaler_y.inverse_transform(y_pred_train_s).ravel()
         y_pred_test = scaler_y.inverse_transform(y_pred_test_s).ravel()
